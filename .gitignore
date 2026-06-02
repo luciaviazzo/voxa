@@ -32,6 +32,7 @@ yarn-error.*
 
 # local env files
 .env*.local
+.env
 
 # typescript
 *.tsbuildinfo
@@ -39,3 +40,21 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# logs
+logs/
+*.log
+
+# package manager lockfiles (keep only one — remove if you use yarn/pnpm)
+# yarn.lock
+# pnpm-lock.yaml
+
+# VS Code
+.vscode/
+
+# build output
+/build/
