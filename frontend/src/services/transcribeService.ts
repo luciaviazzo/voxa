@@ -1,7 +1,7 @@
 import apiClient from './api';
 import { TranscribeResponse } from '../types';
 
-export async function transcribeAudio(audioUri: string): Promise<string> {
+export async function transcribeAudio(audioUri: string): Promise<TranscribeResponse> {
   const formData = new FormData();
 
   formData.append('audio', {
@@ -16,5 +16,5 @@ export async function transcribeAudio(audioUri: string): Promise<string> {
     },
   });
 
-  return response.data.text;
+  return response.data;
 }

@@ -8,6 +8,8 @@ export default function HomeScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [transcribedText, setTranscribedText] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  
+  const [disponible, setDisponible] = useState(45000);
 
   async function handleRecordComplete(audioUri: string) {
     setIsLoading(true);
@@ -15,9 +17,24 @@ export default function HomeScreen() {
     setTranscribedText(null);
 
     try {
-      const text = await transcribeAudio(audioUri);
-      setTranscribedText(text);
-      console.log('Texto obtenido:', text);
+      const response = await transcribeAudio(audioUri);
+      
+      setTranscribedText(response.text);
+      console.log('Texto obtenido:', response.text);
+      console.log('Datos de la transacción:', response.transaction);
+
+      if (response.transaction && response.transaction.monto > 0) {
+        const { monto, tipo } = response.transaction;
+
+        setDisponible((prevSaldo) => {
+          if (tipo === 'gasto') {
+            return prevSaldo - monto;
+          } else if (tipo === 'ingreso') {
+            return prevSaldo + monto;
+          }
+          return prevSaldo;
+        });
+      }
 
     } catch (error: any) {
       setErrorMessage(error.message || 'Ocurrió un error al procesar el audio.');
@@ -36,7 +53,7 @@ export default function HomeScreen() {
 
       <View className="w-full bg-white p-6 rounded-2xl shadow-sm border border-gray-100 items-center">
         <Text className="text-sm text-gray-400 uppercase tracking-wider">Disponible este mes</Text>
-        <Text className="text-4xl font-extrabold text-gray-800 mt-2">$45.000</Text>
+        <Text className="text-4xl font-extrabold text-gray-800 mt-2">${disponible.toLocaleString()}</Text>
         <Text className="text-sm text-green-600 font-medium mt-1">¡Vas muy bien!</Text>
       </View>
 
