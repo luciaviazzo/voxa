@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
 const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
+    apiKey: process.env.GROQ_API_KEY,
+    baseURL: "https://api.groq.com/openai/v1",
 });
 
 const MAX_SIZE_BYTES = 25 * 1024 * 1024; // 25 MB
@@ -42,7 +43,7 @@ export async function POST(req: NextRequest) {
 
         const transcription = await openai.audio.transcriptions.create({
             file: audio,
-            model: "whisper-1",
+            model: "whisper-large-v3-turbo",
             language: "es",
         });
 

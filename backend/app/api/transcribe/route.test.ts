@@ -1,5 +1,6 @@
 import { POST } from "@/app/api/transcribe/route";
 import { NextRequest } from "next/server";
+import OpenAI from "openai";
 
 jest.mock("openai", () => {
     const actual = jest.requireActual<typeof import("openai")>("openai");
@@ -15,9 +16,7 @@ jest.mock("openai", () => {
     return { __esModule: true, default: MockOpenAI };
 });
 
-import OpenAI from "openai";
 
-// Acceso al mock singleton de create
 const mockCreate = (): jest.Mock => (OpenAI as unknown as { _createMock: jest.Mock })._createMock;
 
 function makeRequest(formData: FormData): NextRequest {
@@ -67,17 +66,17 @@ describe("POST /api/transcribe", () => {
         expect(body).toEqual({ text: "hola mundo" });
     });
 
-    it("llama a Whisper con model whisper-1 y language es", async () => {
+    it("llama a Whisper con model whisper-large-v3-turbo y language es", async () => {
         mockCreate().mockResolvedValueOnce({ text: "prueba" });
 
         await POST(makeRequest(audioFormData()));
 
         expect(mockCreate()).toHaveBeenCalledWith(
-            expect.objectContaining({ model: "whisper-1", language: "es" })
+            expect.objectContaining({ model: "whisper-large-v3-turbo", language: "es" })
         );
     });
 
-    it("devuelve 500 si OpenAI lanza un error genérico", async () => {
+    it("devuelve 500 si la API lanza un error genérico", async () => {
         mockCreate().mockRejectedValueOnce(new Error("network failure"));
 
         const res = await POST(makeRequest(audioFormData()));
@@ -87,7 +86,7 @@ describe("POST /api/transcribe", () => {
         expect(body).toEqual({ error: "network failure" });
     });
 
-    it("devuelve el status de OpenAI si lanza un APIError", async () => {
+    it("devuelve el status si la API lanza un APIError", async () => {
         const apiError = new OpenAI.APIError(
             401,
             { error: { message: "invalid key", type: "auth" } },
@@ -102,6 +101,7 @@ describe("POST /api/transcribe", () => {
         expect(res.status).toBe(401);
         expect(body.error).toBeTruthy();
     });
+
     it("devuelve 400 si el archivo tiene tamaño 0 bytes", async () => {
         const formData = new FormData();
         const file = new File([], "recording.m4a", { type: "audio/m4a" });
@@ -149,7 +149,7 @@ describe("POST /api/transcribe", () => {
     });
 
     it("devuelve 422 si Whisper devuelve solo espacios", async () => {
-        mockCreate().mockResolvedValueOnce({ text: "   " });
+        mockCreate().mockResolvedValueOnce({ text: "    " });
 
         const res = await POST(makeRequest(audioFormData()));
         const body = await res.json();
@@ -158,7 +158,7 @@ describe("POST /api/transcribe", () => {
         expect(body).toEqual({ error: "Could not transcribe audio. Please try again" });
     });
 
-    it("devuelve 429 si OpenAI lanza rate limit", async () => {
+    it("devuelve 429 si la API lanza rate limit", async () => {
         const apiError = new OpenAI.APIError(
             429,
             { error: { message: "rate limit exceeded", type: "rate_limit_error" } },
