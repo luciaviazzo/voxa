@@ -1,0 +1,53 @@
+# dependencies
+node_modules/
+
+# environment variables
+.env
+.env*.local
+
+# macOS
+.DS_Store
+*.pem
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# logs
+logs/
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# TypeScript
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+
+# test coverage
+coverage/
+
+# Next.js (backend)
+.next/
+out/
+next-env.d.ts
+
+# Expo (frontend)
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+.metro-health-check*
+/ios
+/android
+/build/
