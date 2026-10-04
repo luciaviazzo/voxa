@@ -78,6 +78,13 @@ Y levantalo:
 npm run dev
 ```
 
+Con el servidor corriendo, la documentación interactiva de la API (Swagger) queda disponible en:
+
+| Recurso | URL |
+|---|---|
+| Swagger UI | `http://localhost:3000/api/docs` |
+| Especificación OpenAPI (JSON) | `http://localhost:3000/api/openapi` |
+
 **2. Aplicación**
 
 ```bash
@@ -93,6 +100,10 @@ Escaneá el código QR con Expo Go. Para que el celular encuentre al servidor, c
 ## Para desarrolladores
 
 Detalle técnico de la API y de los tests.
+
+### Documentación interactiva (Swagger)
+
+Swagger UI en `/api/docs` y especificación OpenAPI en `/api/openapi`. El spec se define en `backend/lib/docs/openapi.ts` y hay que actualizarlo a mano si cambia la API.
 
 ### Endpoint `POST /api/transcribe`
 
