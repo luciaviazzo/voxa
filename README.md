@@ -1,130 +1,102 @@
 # Voxa
 
-Aplicación de finanzas personales por voz, pensada para adultos mayores. El usuario graba un audio con su gasto o ingreso del día ("gasté 8500 en la farmacia") y la app lo transcribe, extrae los datos de la transacción y actualiza el saldo disponible automáticamente.
+**Tus finanzas, con solo hablar.**
+
+Voxa es una aplicación de finanzas personales pensada para adultos mayores. Llevar las cuentas del día a día suele implicar planillas, botones pequeños y formularios largos. Voxa lo reemplaza por algo mucho más natural: contarle a la app lo que pasó con la plata, con la propia voz.
 
 ---
 
-## Stack
+## El problema
 
-| Capa | Tecnología |
-|---|---|
-| Frontend | React Native + Expo |
-| Estilos | NativeWind (Tailwind CSS) |
-| Audio | expo-av |
-| Backend | Next.js (API Routes) |
-| Transcripción | Whisper via Groq (`whisper-large-v3-turbo`) |
-| Extracción de datos | Llama 3.1 via Groq (`llama-3.1-8b-instant`) |
-| Tests | Jest |
+Muchas personas mayores quieren tener control de sus gastos, pero las aplicaciones tradicionales les resultan complicadas: demasiados pasos, textos chicos, menús que cuesta entender. El resultado es que terminan sin registrar nada, o dependiendo de otra persona para hacerlo.
+
+## La solución
+
+Con Voxa alcanza con mantener presionado un botón grande y decir, por ejemplo:
+
+> "Gasté 8500 en la farmacia"
+
+La app entiende lo que se dijo, identifica el monto, si fue un gasto o un ingreso y de qué categoría se trata, y actualiza el saldo disponible. Sin escribir, sin formularios, sin pasos de más.
 
 ---
 
-## Arquitectura
+## Cómo funciona
 
-El proyecto es un monorepo con dos aplicaciones independientes.
+1. **Hablás.** Mantenés presionado el botón del micrófono y contás tu gasto o ingreso.
+2. **Voxa escucha.** El audio se convierte en texto.
+3. **Voxa entiende.** De ese texto se extraen el monto, el tipo de movimiento y la categoría.
+4. **Tu saldo se actualiza.** El movimiento queda registrado y ves cuánto dinero te queda.
+
+---
+
+## Pensada para quienes más lo necesitan
+
+- **Un solo botón principal.** La pantalla se centra en lo esencial, sin menús ni opciones que distraigan.
+- **Mensajes claros y en español rioplatense**, con indicaciones simples en cada paso ("Mantené presionado para hablar").
+- **Cero escritura.** Todo se hace hablando de manera natural, como si se le contara a un familiar.
+- **Elementos grandes y fáciles de tocar.**
+
+---
+
+## Qué tiene el proyecto
+
+Voxa se compone de dos partes:
+
+- **La aplicación móvil**, que es lo que usa la persona: la pantalla con el botón de grabación y el saldo.
+- **El servidor**, que recibe el audio, lo transcribe y entiende qué movimiento se mencionó.
 
 ```
 voxa/
-├── backend/    → API REST en Next.js
-└── frontend/   → App móvil en Expo
+├── frontend/   → la app del celular
+└── backend/    → el servidor que procesa la voz
 ```
 
-### Backend — arquitectura por capas
-
-```
-backend/
-├── app/api/transcribe/     → capa HTTP (route handler)
-├── services/transcription/ → lógica de negocio
-└── lib/clients/            → clientes externos (OpenAI/Groq)
-```
-
-### Flujo principal
-
-```
-[Grabación de audio]
-        ↓
-POST /api/transcribe
-        ↓
-validateAudio()         → valida tipo, tamaño y contenido
-        ↓
-transcribeAudio()       → Whisper convierte audio a texto
-        ↓
-extractTransaction()    → Llama extrae monto, tipo y categoría
-        ↓
-{ text, transaction }   → el frontend actualiza el saldo
-```
+Por debajo se apoya en modelos de inteligencia artificial de [Groq](https://groq.com) para transcribir el audio y extraer los datos del movimiento.
 
 ---
 
-## Requisitos
+## Cómo probarlo
 
-- Node.js 18+
-- Cuenta en [Groq](https://console.groq.com) (API key gratuita)
-- Expo Go en el celular (o emulador)
+Necesitás Node.js 18 o superior, una API key gratuita de [Groq](https://console.groq.com) y la app Expo Go en el celular.
 
----
-
-## Instalación
-
-### Backend
+**1. Servidor**
 
 ```bash
 cd backend
 npm install
 ```
 
-Crear el archivo de variables de entorno:
+Creá el archivo `backend/.env.local` con tu clave:
 
-```bash
-# backend/.env.local
+```
 GROQ_API_KEY=tu_api_key_de_groq
 ```
 
-Iniciar el servidor de desarrollo:
+Y levantalo:
 
 ```bash
 npm run dev
-# http://localhost:3000
 ```
 
-### Frontend
+**2. Aplicación**
 
 ```bash
 cd frontend
 npm install
-```
-
-Configurar la URL del backend en `src/services/api.ts` apuntando a tu IP local.
-
-Iniciar la app:
-
-```bash
 npm start
-# Escaneá el QR con Expo Go
 ```
 
----
-
-## Variables de entorno
-
-| Variable | Descripción |
-|---|---|
-| `GROQ_API_KEY` | API key de Groq (requerida en backend) |
+Escaneá el código QR con Expo Go. Para que el celular encuentre al servidor, configurá la dirección de tu computadora en `frontend/src/services/api.ts`.
 
 ---
 
-## API
+## Para desarrolladores
 
-### `POST /api/transcribe`
+Detalle técnico de la API y de los tests.
 
-Recibe un archivo de audio y retorna el texto transcripto junto con los datos de la transacción.
+### Endpoint `POST /api/transcribe`
 
-**Request** — `multipart/form-data`
-
-| Campo | Tipo | Descripción |
-|---|---|---|
-| `audio` | File | Archivo de audio (`audio/*`, máx. 25 MB) |
-
-**Response `200`**
+Recibe un archivo de audio (`multipart/form-data`, campo `audio`, máximo 25 MB) y devuelve el texto y los datos del movimiento:
 
 ```json
 {
@@ -138,49 +110,21 @@ Recibe un archivo de audio y retorna el texto transcripto junto con los datos de
 }
 ```
 
-**Errores posibles**
-
-| Status | Descripción |
+| Status | Significado |
 |---|---|
-| `400` | Campo `audio` ausente, inválido, vacío o tipo MIME incorrecto |
+| `400` | Audio ausente, vacío o de un tipo no válido |
 | `413` | Archivo mayor a 25 MB |
-| `422` | Whisper no pudo transcribir el audio |
-| `429` | Rate limit de la API de Groq |
+| `422` | No se pudo transcribir el audio |
+| `429` | Se superó el límite de uso de Groq |
 | `500` | Error interno |
 
----
-
-## Tests
+### Tests
 
 ```bash
 cd backend
 npm test
 ```
 
-Cobertura actual: 13 tests sobre el endpoint `/api/transcribe`.
+### Tecnologías
 
----
-
-## Estructura del proyecto
-
-```
-voxa/
-├── backend/
-│   ├── app/api/transcribe/
-│   │   ├── route.ts                          # handler HTTP
-│   │   └── route.test.ts                     # tests
-│   ├── services/transcription/
-│   │   └── transcription.service.ts          # lógica de negocio
-│   ├── lib/clients/
-│   │   └── openai.ts                         # cliente Groq/OpenAI
-│   └── ...config files
-└── frontend/
-    ├── app/
-    │   └── index.tsx                         # pantalla principal
-    └── src/
-        ├── components/RecordButton.tsx        # botón de grabación
-        ├── services/
-        │   ├── api.ts                         # cliente HTTP
-        │   └── transcribeService.ts           # llamada al backend
-        └── types/index.ts                     # tipos compartidos
-```
+React Native con Expo y NativeWind en la app; Next.js en el servidor, organizado por capas (HTTP, lógica de negocio y clientes externos); Whisper y Llama vía Groq; Jest para los tests.
