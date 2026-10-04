@@ -173,4 +173,14 @@ describe("POST /api/transcribe", () => {
         expect(res.status).toBe(429);
         expect(body.error).toBeTruthy();
     });
+
+    it("devuelve el texto recortado si Whisper devuelve espacios al inicio o al final", async () => {
+        mockCreate().mockResolvedValueOnce({ text: "  gasté 8500 en la farmacia  " });
+
+        const res = await POST(makeRequest(audioFormData()));
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(body).toEqual({ text: "gasté 8500 en la farmacia" });
+    });
 });
