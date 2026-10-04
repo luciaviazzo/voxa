@@ -53,7 +53,7 @@ describe("POST /api/transcribe", () => {
         const body = await res.json();
 
         expect(res.status).toBe(400);
-        expect(body).toEqual({ error: "Missing or invalid 'audio' field" });
+        expect(body).toEqual({ error: "Missing or invalid 'audio' field", code: "AUDIO_MISSING" });
     });
 
     it("devuelve 400 si el campo audio no es un File", async () => {
@@ -63,7 +63,7 @@ describe("POST /api/transcribe", () => {
         const body = await res.json();
 
         expect(res.status).toBe(400);
-        expect(body).toEqual({ error: "Missing or invalid 'audio' field" });
+        expect(body).toEqual({ error: "Missing or invalid 'audio' field", code: "AUDIO_MISSING" });
     });
 
     it("devuelve 200 con el texto transcripto", async () => {
@@ -94,7 +94,7 @@ describe("POST /api/transcribe", () => {
         const body = await res.json();
 
         expect(res.status).toBe(500);
-        expect(body).toEqual({ error: "network failure" });
+        expect(body).toEqual({ error: "Internal server error", code: "INTERNAL_ERROR" });
     });
 
     it("devuelve el status si la API lanza un APIError", async () => {
@@ -122,7 +122,7 @@ describe("POST /api/transcribe", () => {
         const body = await res.json();
 
         expect(res.status).toBe(400);
-        expect(body).toEqual({ error: "Audio file is empty" });
+        expect(body).toEqual({ error: "Audio file is empty", code: "AUDIO_EMPTY" });
     });
 
     it("devuelve 400 si el tipo MIME no es audio", async () => {
@@ -134,7 +134,7 @@ describe("POST /api/transcribe", () => {
         const body = await res.json();
 
         expect(res.status).toBe(400);
-        expect(body).toEqual({ error: "Invalid file type. Only audio files are allowed" });
+        expect(body).toEqual({ error: "Invalid file type. Only audio files are allowed", code: "AUDIO_INVALID_TYPE" });
     });
 
     it("devuelve 413 si el archivo supera 25MB", async () => {
@@ -146,7 +146,7 @@ describe("POST /api/transcribe", () => {
         const body = await res.json();
 
         expect(res.status).toBe(413);
-        expect(body).toEqual({ error: "File too large. Maximum size is 25MB" });
+        expect(body).toEqual({ error: "File too large. Maximum size is 25MB", code: "AUDIO_TOO_LARGE" });
     });
 
     it("devuelve 422 si Whisper devuelve texto vacío", async () => {
@@ -156,7 +156,7 @@ describe("POST /api/transcribe", () => {
         const body = await res.json();
 
         expect(res.status).toBe(422);
-        expect(body).toEqual({ error: "Could not transcribe audio. Please try again" });
+        expect(body).toEqual({ error: "Could not transcribe audio. Please try again", code: "TRANSCRIPTION_EMPTY" });
     });
 
     it("devuelve 422 si Whisper devuelve solo espacios", async () => {
@@ -166,7 +166,7 @@ describe("POST /api/transcribe", () => {
         const body = await res.json();
 
         expect(res.status).toBe(422);
-        expect(body).toEqual({ error: "Could not transcribe audio. Please try again" });
+        expect(body).toEqual({ error: "Could not transcribe audio. Please try again", code: "TRANSCRIPTION_EMPTY" });
     });
 
     it("devuelve 429 si la API lanza rate limit", async () => {
@@ -201,7 +201,7 @@ describe("POST /api/transcribe", () => {
         const res = await POST(makeRequest(audioFormData()));
 
         expect(res.status).toBe(500);
-        expect(await res.json()).toEqual({ error: "Internal server error" });
+        expect(await res.json()).toEqual({ error: "Internal server error", code: "INTERNAL_ERROR" });
     });
 
     it("devuelve 500 si el APIError del proveedor no trae status", async () => {

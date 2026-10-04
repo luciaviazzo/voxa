@@ -100,14 +100,21 @@ describe("E2E POST /api/transcribe (route + servicio + cliente real, Groq simula
         const res = await POST(request(validAudio()));
 
         expect(res.status).toBe(429);
+        expect(await res.json()).toEqual({
+            error: "Rate limit exceeded. Please try again later",
+            code: "RATE_LIMITED",
+        });
     });
 
-    it("devuelve 500 si el modelo responde algo que no es JSON", async () => {
+    it("devuelve 502 con código estable si el modelo responde algo que no es JSON", async () => {
         behavior.chatBody = { choices: [{ message: { content: "no es json" } }] };
 
         const res = await POST(request(validAudio()));
 
-        expect(res.status).toBe(500);
-        expect(await res.json()).toHaveProperty("error");
+        expect(res.status).toBe(502);
+        expect(await res.json()).toEqual({
+            error: "Could not extract transaction data",
+            code: "TRANSACTION_EXTRACTION_FAILED",
+        });
     });
 });

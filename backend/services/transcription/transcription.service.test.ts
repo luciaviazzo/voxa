@@ -1,5 +1,5 @@
+import { ErrorCode, ExtractionError, ValidationError } from "@/lib/errors/app-error";
 import {
-    ValidationError,
     validateAudio,
     transcribeAudio,
     extractTransaction,
@@ -20,26 +20,17 @@ function audioFile(content = "audio data", type = "audio/m4a"): File {
     return new File([content], "recording.m4a", { type });
 }
 
-function expectValidationError(fn: () => void, httpStatus: number, message: string) {
+function expectValidationError(fn: () => void, httpStatus: number, code: string, message: string) {
     try {
         fn();
         throw new Error("Se esperaba un ValidationError");
     } catch (err) {
         expect(err).toBeInstanceOf(ValidationError);
         expect((err as ValidationError).httpStatus).toBe(httpStatus);
+        expect((err as ValidationError).code).toBe(code);
         expect((err as ValidationError).message).toBe(message);
     }
 }
-
-describe("ValidationError", () => {
-    it("conserva el status HTTP y el mensaje", () => {
-        const err = new ValidationError(418, "teapot");
-
-        expect(err).toBeInstanceOf(Error);
-        expect(err.httpStatus).toBe(418);
-        expect(err.message).toBe("teapot");
-    });
-});
 
 describe("validateAudio", () => {
     it("acepta un audio válido", () => {
@@ -47,21 +38,22 @@ describe("validateAudio", () => {
     });
 
     it("rechaza null", () => {
-        expectValidationError(() => validateAudio(null), 400, "Missing or invalid 'audio' field");
+        expectValidationError(() => validateAudio(null), 400, "AUDIO_MISSING", "Missing or invalid 'audio' field");
     });
 
     it("rechaza un string que no es File", () => {
-        expectValidationError(() => validateAudio("texto"), 400, "Missing or invalid 'audio' field");
+        expectValidationError(() => validateAudio("texto"), 400, "AUDIO_MISSING", "Missing or invalid 'audio' field");
     });
 
     it("rechaza un archivo vacío", () => {
-        expectValidationError(() => validateAudio(audioFile("")), 400, "Audio file is empty");
+        expectValidationError(() => validateAudio(audioFile("")), 400, "AUDIO_EMPTY", "Audio file is empty");
     });
 
     it("rechaza un tipo MIME que no es audio", () => {
         expectValidationError(
             () => validateAudio(audioFile("x", "image/png")),
             400,
+            "AUDIO_INVALID_TYPE",
             "Invalid file type. Only audio files are allowed"
         );
     });
@@ -70,7 +62,7 @@ describe("validateAudio", () => {
         const big = audioFile("x");
         Object.defineProperty(big, "size", { value: 25 * 1024 * 1024 + 1 });
 
-        expectValidationError(() => validateAudio(big), 413, "File too large. Maximum size is 25MB");
+        expectValidationError(() => validateAudio(big), 413, "AUDIO_TOO_LARGE", "File too large. Maximum size is 25MB");
     });
 
     it("acepta un archivo de exactamente 25MB", () => {
@@ -108,6 +100,7 @@ describe("transcribeAudio", () => {
 
         await expect(transcribeAudio(audioFile())).rejects.toMatchObject({
             httpStatus: 422,
+            code: ErrorCode.TRANSCRIPTION_EMPTY,
             message: "Could not transcribe audio. Please try again",
         });
     });
@@ -147,10 +140,13 @@ describe("extractTransaction", () => {
         await expect(extractTransaction("hola")).resolves.toEqual({});
     });
 
-    it("falla si el modelo devuelve un JSON inválido", async () => {
+    it("lanza ExtractionError 502 si el modelo devuelve un JSON inválido", async () => {
         chatCreate.mockResolvedValue({ choices: [{ message: { content: "no es json" } }] });
 
-        await expect(extractTransaction("hola")).rejects.toThrow(SyntaxError);
+        const result = extractTransaction("hola");
+
+        await expect(result).rejects.toBeInstanceOf(ExtractionError);
+        await expect(result).rejects.toMatchObject({ httpStatus: 502, code: ErrorCode.TRANSACTION_EXTRACTION_FAILED });
     });
 
     it("propaga los errores del proveedor", async () => {

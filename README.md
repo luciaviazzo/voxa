@@ -121,21 +121,27 @@ Recibe un archivo de audio (`multipart/form-data`, campo `audio`, máximo 25 MB)
 }
 ```
 
-| Status | Significado |
-|---|---|
-| `400` | Audio ausente, vacío o de un tipo no válido |
-| `413` | Archivo mayor a 25 MB |
-| `422` | No se pudo transcribir el audio |
-| `429` | Se superó el límite de uso de Groq |
-| `500` | Error interno |
+Todos los errores responden con `{ "error": "mensaje técnico en inglés", "code": "CODIGO_ESTABLE" }`. La app no muestra el mensaje técnico: traduce cada `code` a un mensaje en español para el usuario.
+
+| Status | `code` | Significado |
+|---|---|---|
+| `400` | `AUDIO_MISSING` | No se envió el campo `audio` |
+| `400` | `AUDIO_EMPTY` | El audio está vacío |
+| `400` | `AUDIO_INVALID_TYPE` | El archivo no es de tipo audio |
+| `413` | `AUDIO_TOO_LARGE` | Archivo mayor a 25 MB |
+| `422` | `TRANSCRIPTION_EMPTY` | No se pudo transcribir el audio |
+| `429` | `RATE_LIMITED` | Se superó el límite de uso de Groq |
+| `502` | `TRANSACTION_EXTRACTION_FAILED` | El modelo no devolvió datos de transacción válidos |
+| según el proveedor | `PROVIDER_ERROR` | Falla del proveedor de IA |
+| `500` | `INTERNAL_ERROR` | Error interno (el detalle nunca se expone) |
 
 ### Tests
 
 Ambos proyectos exigen 100% de cobertura (líneas, ramas, funciones y sentencias): si algo queda sin testear, `test:coverage` falla.
 
 ```bash
-cd backend && npm run test:coverage    # 42 tests
-cd frontend && npm run test:coverage   # 59 tests
+cd backend && npm run test:coverage    # 49 tests
+cd frontend && npm run test:coverage   # 68 tests
 ```
 
 | Proyecto | Unitarios | End-to-end |

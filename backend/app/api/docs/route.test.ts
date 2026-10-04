@@ -28,7 +28,7 @@ describe("especificación OpenAPI", () => {
     it("documenta POST /api/transcribe con todas sus respuestas", () => {
         const operation = openApiSpec.paths["/api/transcribe"].post;
 
-        expect(Object.keys(operation.responses).sort()).toEqual(["200", "400", "413", "422", "429", "500"]);
+        expect(Object.keys(operation.responses).sort()).toEqual(["200", "400", "413", "422", "429", "500", "502"]);
     });
 
     it("todas las referencias $ref apuntan a componentes existentes", () => {

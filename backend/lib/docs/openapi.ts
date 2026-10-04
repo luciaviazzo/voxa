@@ -1,3 +1,5 @@
+import { ErrorCode } from "@/lib/errors/app-error";
+
 export const openApiSpec = {
     openapi: "3.0.3",
     info: {
@@ -43,6 +45,7 @@ export const openApiSpec = {
                     "413": { $ref: "#/components/responses/PayloadTooLarge" },
                     "422": { $ref: "#/components/responses/Unprocessable" },
                     "429": { $ref: "#/components/responses/RateLimited" },
+                    "502": { $ref: "#/components/responses/BadGateway" },
                     "500": { $ref: "#/components/responses/InternalError" },
                 },
             },
@@ -68,7 +71,11 @@ export const openApiSpec = {
             },
             Error: {
                 type: "object",
-                properties: { error: { type: "string" } },
+                required: ["error", "code"],
+                properties: {
+                    error: { type: "string", description: "Mensaje técnico, en inglés" },
+                    code: { type: "string", enum: Object.values(ErrorCode), description: "Código estable del error" },
+                },
             },
         },
         responses: {
@@ -76,6 +83,7 @@ export const openApiSpec = {
             PayloadTooLarge: errorResponse("Archivo mayor a 25 MB"),
             Unprocessable: errorResponse("No se pudo transcribir el audio"),
             RateLimited: errorResponse("Se superó el límite de uso de Groq"),
+            BadGateway: errorResponse("El modelo no devolvió datos de transacción válidos"),
             InternalError: errorResponse("Error interno"),
         },
     },

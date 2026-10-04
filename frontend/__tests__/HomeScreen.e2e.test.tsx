@@ -93,13 +93,17 @@ describe('E2E: de la voz al saldo (pantalla + botón + servicio + cliente HTTP r
     await screen.findByText('Mantené presionado para hablar');
   });
 
-  it('muestra el mensaje amigable cuando el audio no se pudo transcribir (422)', async () => {
-    mockBackend({ status: 422, data: { error: 'Could not transcribe audio. Please try again' } });
+  it('muestra el mensaje amigable cuando no se entendió el audio (422)', async () => {
+    mockBackend({
+      status: 422,
+      data: { error: 'Could not transcribe audio. Please try again', code: 'TRANSCRIPTION_EMPTY' },
+    });
     render(<HomeScreen />);
 
     await speak();
 
-    expect(await screen.findByText('No se pudo procesar el audio. Intentá de nuevo.')).toBeTruthy();
+    expect(await screen.findByText('No te pudimos entender. Intentá hablar más cerca del micrófono.')).toBeTruthy();
+    expect(screen.queryByText(/Could not transcribe/)).toBeNull();
     expect(balance(/^\$45[.,]000$/)).toBeTruthy();
   });
 

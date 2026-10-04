@@ -34,19 +34,45 @@ describe('apiClient', () => {
     expect(response.data).toEqual({ ok: true });
   });
 
-  describe('mensajes amigables por status', () => {
+  describe('mensajes amigables por código de error', () => {
+    const SERVER = 'Ocurrió un error en el servidor. Intentalo más tarde.';
+    const SILENCE = 'No se escuchó nada. Mantené presionado el botón y hablá.';
+
     it.each([
-      [400, { error: 'Audio file is empty' }, 'Audio file is empty'],
-      [400, {}, 'Los datos enviados son incorrectos.'],
-      [413, {}, 'El archivo de audio es demasiado pesado (máximo 25MB).'],
-      [422, {}, 'No se pudo procesar el audio. Intentá de nuevo.'],
-      [500, {}, 'Ocurrió un error en el servidor. Intentalo más tarde.'],
-      [502, {}, 'Ocurrió un error en el servidor. Intentalo más tarde.'],
-      [503, {}, 'Ocurrió un error en el servidor. Intentalo más tarde.'],
-      [429, { error: 'Rate limit' }, 'Rate limit'],
-      [404, {}, 'Ocurrió un error inesperado.'],
-    ])('status %i', async (status, data, expected) => {
-      const error = await failWith(status, data);
+      [400, 'AUDIO_MISSING', SILENCE],
+      [400, 'AUDIO_EMPTY', SILENCE],
+      [400, 'AUDIO_INVALID_TYPE', 'El audio no tiene un formato válido. Intentá grabar de nuevo.'],
+      [413, 'AUDIO_TOO_LARGE', 'El audio es demasiado largo. Intentá con uno más corto.'],
+      [422, 'TRANSCRIPTION_EMPTY', 'No te pudimos entender. Intentá hablar más cerca del micrófono.'],
+      [502, 'TRANSACTION_EXTRACTION_FAILED', 'No pudimos entender el movimiento. Intentá decirlo de otra forma.'],
+      [429, 'RATE_LIMITED', 'Hay muchas consultas en este momento. Esperá un momento e intentá de nuevo.'],
+      [401, 'PROVIDER_ERROR', SERVER],
+      [500, 'INTERNAL_ERROR', SERVER],
+    ])('status %i con código %s', async (status, code, expected) => {
+      const error = await failWith(status, { error: 'texto técnico en inglés', code });
+
+      expect(error.response?.data?.friendlyMessage).toBe(expected);
+    });
+
+    it('nunca muestra el texto técnico del backend', async () => {
+      const error = await failWith(400, { error: 'Audio file is empty', code: 'AUDIO_EMPTY' });
+
+      expect(getErrorMessage(error)).not.toContain('Audio file is empty');
+    });
+  });
+
+  describe('mensajes amigables por status cuando no hay código', () => {
+    it.each([
+      [400, 'Los datos enviados son incorrectos.'],
+      [413, 'El archivo de audio es demasiado pesado (máximo 25MB).'],
+      [422, 'No se pudo procesar el audio. Intentá de nuevo.'],
+      [500, 'Ocurrió un error en el servidor. Intentalo más tarde.'],
+      [502, 'Ocurrió un error en el servidor. Intentalo más tarde.'],
+      [503, 'Ocurrió un error en el servidor. Intentalo más tarde.'],
+      [429, 'Ocurrió un error inesperado.'],
+      [404, 'Ocurrió un error inesperado.'],
+    ])('status %i', async (status, expected) => {
+      const error = await failWith(status, { error: 'texto técnico' });
 
       expect(error.response?.data?.friendlyMessage).toBe(expected);
     });
