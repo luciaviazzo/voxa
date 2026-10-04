@@ -1,5 +1,3 @@
-/// <reference types="nativewind" />
-
 import React, { useState } from 'react';
 import { TouchableOpacity, Text, View } from 'react-native';
 import { Audio } from 'expo-av';
