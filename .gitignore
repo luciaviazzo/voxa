@@ -29,3 +29,25 @@ yarn-error.*
 
 # test coverage
 coverage/
+
+# Next.js (backend)
+.next/
+out/
+next-env.d.ts
+
+# Expo (frontend)
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+.metro-health-check*
+/ios
+/android
+/build/
