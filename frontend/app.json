@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "voxa",
+    "slug": "voxa",
+    "scheme": "voxa",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "experiments": {
+      "typedRoutes": true
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE"
+      }
+    },
+    "web": {},
+    "plugins": [
+      "expo-router",
+      "expo-audio"
+    ]
+  }
+}
