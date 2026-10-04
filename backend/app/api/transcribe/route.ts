@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
 const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
+    apiKey: process.env.GROQ_API_KEY,
+    baseURL: "https://api.groq.com/openai/v1",
 });
 
 const MAX_SIZE_BYTES = 25 * 1024 * 1024; // 25 MB
@@ -42,18 +43,47 @@ export async function POST(req: NextRequest) {
 
         const transcription = await openai.audio.transcriptions.create({
             file: audio,
-            model: "whisper-1",
+            model: "whisper-large-v3-turbo",
             language: "es",
         });
 
-        if (!transcription.text.trim()) {
+        const rawText = transcription.text;
+
+        if (!rawText.trim()) {
             return NextResponse.json(
                 { error: "Could not transcribe audio. Please try again" },
                 { status: 422 }
             );
         }
 
-        return NextResponse.json({ text: transcription.text });
+        // Procesamiento con Llama 3 para extraer los datos de la transacción
+        const completion = await openai.chat.completions.create({
+            model: "llama-3.1-8b-instant",
+            messages: [
+                {
+                    role: "system",
+                    content: `Eres un asistente financiero para adultos mayores. Analiza la siguiente frase de voz y extrae la información en formato JSON estricto con las siguientes claves:
+                    - "monto": número (ej: 8500). Si no hay monto, pon 0.
+                    - "tipo": "gasto" o "ingreso".
+                    - "categoria": una de estas exactas: "Salud", "Comida", "Transporte", "Servicios", "Ingreso", "Otro".
+                    - "descripcion": texto corto resumiendo en qué fue (ej: "Farmacia").
+                    Devuelve ÚNICAMENTE el JSON válido, sin texto adicional.`
+                },
+                {
+                    role: "user",
+                    content: rawText
+                }
+            ],
+            response_format: { type: "json_object" }
+        });
+
+        const parsedData = JSON.parse(completion.choices[0].message.content || "{}");
+
+        return NextResponse.json({
+            text: rawText.trim(),
+            transaction: parsedData
+        });
+
     } catch (err: unknown) {
         const message = err instanceof Error ? err.message : "Internal server error";
         const status =
