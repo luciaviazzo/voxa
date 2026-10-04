@@ -19,7 +19,8 @@
     },
     "web": {},
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-audio"
     ]
   }
 }

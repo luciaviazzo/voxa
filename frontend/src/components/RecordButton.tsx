@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { TouchableOpacity, Text, View } from 'react-native';
-import { Audio } from 'expo-av';
+import {
+  useAudioRecorder,
+  setAudioModeAsync,
+  requestRecordingPermissionsAsync,
+  RecordingPresets,
+} from 'expo-audio';
 import { FontAwesome } from '@expo/vector-icons';
 
 interface RecordButtonProps {
@@ -9,58 +14,41 @@ interface RecordButtonProps {
 }
 
 export default function RecordButton({ onRecordComplete, isLoading = false }: RecordButtonProps) {
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const [isRecording, setIsRecording] = useState(false);
 
   async function startRecording() {
     try {
-      if (recording) {
-        await recording.stopAndUnloadAsync();
-        setRecording(null);
-      }
-
-      const permission = await Audio.requestPermissionsAsync();
-      if (permission.status !== 'granted') {
+      const permission = await requestRecordingPermissionsAsync();
+      if (!permission.granted) {
         alert('Necesitamos tu permiso para usar el micrófono');
         return;
       }
 
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      });
-
-      const { recording: newRecording } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY
-      );
-      setRecording(newRecording);
+      await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
+      await recorder.prepareToRecordAsync();
+      recorder.record();
+      setIsRecording(true);
     } catch (err) {
       console.error('Error al iniciar la grabación', err);
     }
   }
 
   async function stopRecording() {
-    if (!recording) return;
+    if (!isRecording) return;
 
     try {
-      const currentRecording = recording;
-      setRecording(null);
-      
-      await currentRecording.stopAndUnloadAsync();
-      
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
-      });
+      setIsRecording(false);
+      await recorder.stop();
+      await setAudioModeAsync({ allowsRecording: false });
 
-      const uri = currentRecording.getURI();
-      if (uri) {
-        onRecordComplete(uri);
+      if (recorder.uri) {
+        onRecordComplete(recorder.uri);
       }
     } catch (err) {
       console.error('Error al detener la grabación', err);
     }
   }
-
-  const isRecording = recording !== null;
 
   return (
     <View className="items-center justify-center">
@@ -69,7 +57,7 @@ export default function RecordButton({ onRecordComplete, isLoading = false }: Re
         onPressOut={stopRecording}
         disabled={isLoading}
         activeOpacity={0.7}
-        className={`w-32 h-32 rounded-full items-center justify-center shadow-lg transition-all ${
+        className={`w-32 h-32 rounded-full items-center justify-center shadow-lg ${
           isRecording ? 'bg-red-500 scale-110' : 'bg-blue-600'
         } ${isLoading ? 'opacity-50' : 'opacity-100'}`}
       >
