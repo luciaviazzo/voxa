@@ -99,57 +99,9 @@ Escaneá el código QR con Expo Go. Para que el celular encuentre al servidor, c
 
 ## Para desarrolladores
 
-Detalle técnico de la API y de los tests.
-
-### Documentación interactiva (Swagger)
+### Documentación de la API (Swagger)
 
 Swagger UI en `/api/docs` y especificación OpenAPI en `/api/openapi`. El spec se define en `backend/lib/docs/openapi.ts` y hay que actualizarlo a mano si cambia la API.
-
-### Endpoint `POST /api/transcribe`
-
-Recibe un archivo de audio (`multipart/form-data`, campo `audio`, máximo 25 MB) y devuelve el texto y los datos del movimiento:
-
-```json
-{
-  "text": "gasté 8500 en la farmacia",
-  "transaction": {
-    "monto": 8500,
-    "tipo": "gasto",
-    "categoria": "Salud",
-    "descripcion": "Farmacia"
-  }
-}
-```
-
-Todos los errores responden con `{ "error": "mensaje técnico en inglés", "code": "CODIGO_ESTABLE" }`. La app no muestra el mensaje técnico: traduce cada `code` a un mensaje en español para el usuario.
-
-| Status | `code` | Significado |
-|---|---|---|
-| `400` | `AUDIO_MISSING` | No se envió el campo `audio` |
-| `400` | `AUDIO_EMPTY` | El audio está vacío |
-| `400` | `AUDIO_INVALID_TYPE` | El archivo no es de tipo audio |
-| `413` | `AUDIO_TOO_LARGE` | Archivo mayor a 25 MB |
-| `422` | `TRANSCRIPTION_EMPTY` | No se pudo transcribir el audio |
-| `429` | `RATE_LIMITED` | Se superó el límite de uso de Groq |
-| `502` | `TRANSACTION_EXTRACTION_FAILED` | El modelo no devolvió datos de transacción válidos |
-| según el proveedor | `PROVIDER_ERROR` | Falla del proveedor de IA |
-| `500` | `INTERNAL_ERROR` | Error interno (el detalle nunca se expone) |
-
-### Tests
-
-Ambos proyectos exigen 100% de cobertura (líneas, ramas, funciones y sentencias): si algo queda sin testear, `test:coverage` falla.
-
-```bash
-cd backend && npm run test:coverage    # 49 tests
-cd frontend && npm run test:coverage   # 68 tests
-```
-
-| Proyecto | Unitarios | End-to-end |
-|---|---|---|
-| Backend | Servicio de transcripción, endpoint, Swagger/OpenAPI | `e2e/transcribe.e2e.test.ts`: route + servicio + cliente real contra un Groq simulado por HTTP |
-| Frontend | Cliente HTTP, servicio de transcripción, botón de grabación, pantalla principal, layout y pantalla 404 | `__tests__/HomeScreen.e2e.test.tsx`: de la voz al saldo, con pantalla, botón, servicio y cliente HTTP reales |
-
-Los tests end-to-end no usan la API real de Groq ni el micrófono real: reemplazan solo esos bordes. La prueba en un celular físico con Expo Go sigue siendo manual.
 
 ### Tecnologías
 
