@@ -1,0 +1,31 @@
+# dependencies
+node_modules/
+
+# environment variables
+.env
+.env*.local
+
+# macOS
+.DS_Store
+*.pem
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# logs
+logs/
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# TypeScript
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+
+# test coverage
+coverage/

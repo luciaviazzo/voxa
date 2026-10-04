@@ -1,8 +1,3 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
-
-# dependencies
-node_modules/
-
 # Expo
 .expo/
 dist/
@@ -21,40 +16,9 @@ expo-env.d.ts
 # Metro
 .metro-health-check*
 
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
-
-# macOS
-.DS_Store
-*.pem
-
-# local env files
-.env*.local
-.env
-
-# typescript
-*.tsbuildinfo
-
 # generated native folders
 /ios
 /android
-
-# Windows
-Thumbs.db
-desktop.ini
-
-# logs
-logs/
-*.log
-
-# package manager lockfiles (keep only one — remove if you use yarn/pnpm)
-# yarn.lock
-# pnpm-lock.yaml
-
-# VS Code
-.vscode/
 
 # build output
 /build/
