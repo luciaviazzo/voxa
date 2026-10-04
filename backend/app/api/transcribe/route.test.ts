@@ -194,4 +194,22 @@ describe("POST /api/transcribe", () => {
         expect(res.status).toBe(200);
         expect(body.text).toBe("gasté 8500 en la farmacia");
     });
+
+    it("devuelve 500 con mensaje genérico si se lanza algo que no es un Error", async () => {
+        mockCreate().mockRejectedValueOnce("fallo raro");
+
+        const res = await POST(makeRequest(audioFormData()));
+
+        expect(res.status).toBe(500);
+        expect(await res.json()).toEqual({ error: "Internal server error" });
+    });
+
+    it("devuelve 500 si el APIError del proveedor no trae status", async () => {
+        const apiError = new OpenAI.APIError(undefined, undefined, "sin conexión", new Headers());
+        mockCreate().mockRejectedValueOnce(apiError);
+
+        const res = await POST(makeRequest(audioFormData()));
+
+        expect(res.status).toBe(500);
+    });
 });

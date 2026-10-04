@@ -131,10 +131,19 @@ Recibe un archivo de audio (`multipart/form-data`, campo `audio`, máximo 25 MB)
 
 ### Tests
 
+Ambos proyectos exigen 100% de cobertura (líneas, ramas, funciones y sentencias): si algo queda sin testear, `test:coverage` falla.
+
 ```bash
-cd backend
-npm test
+cd backend && npm run test:coverage    # 42 tests
+cd frontend && npm run test:coverage   # 59 tests
 ```
+
+| Proyecto | Unitarios | End-to-end |
+|---|---|---|
+| Backend | Servicio de transcripción, endpoint, Swagger/OpenAPI | `e2e/transcribe.e2e.test.ts`: route + servicio + cliente real contra un Groq simulado por HTTP |
+| Frontend | Cliente HTTP, servicio de transcripción, botón de grabación, pantalla principal, layout y pantalla 404 | `__tests__/HomeScreen.e2e.test.tsx`: de la voz al saldo, con pantalla, botón, servicio y cliente HTTP reales |
+
+Los tests end-to-end no usan la API real de Groq ni el micrófono real: reemplazan solo esos bordes. La prueba en un celular físico con Expo Go sigue siendo manual.
 
 ### Tecnologías
 

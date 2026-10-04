@@ -48,3 +48,11 @@ apiClient.interceptors.response.use(
 );
 
 export default apiClient;
+
+export function getErrorMessage(error: unknown): string {
+  const fallback = 'Ocurrió un error al procesar el audio.';
+  if (!axios.isAxiosError<BackendError>(error)) {
+    return error instanceof Error && error.message ? error.message : fallback;
+  }
+  return error.response?.data?.friendlyMessage || error.message || fallback;
+}
