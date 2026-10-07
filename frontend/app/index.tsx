@@ -3,6 +3,7 @@ import { View, Text, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import RecordButton from '@/components/RecordButton';
 import { transcribeAudio } from '@/services/transcribeService';
+import { getErrorMessage } from '@/services/api';
 
 export default function HomeScreen() {
   const [isLoading, setIsLoading] = useState(false);
@@ -36,8 +37,8 @@ export default function HomeScreen() {
         });
       }
 
-    } catch (error: any) {
-      setErrorMessage(error.message || 'Ocurrió un error al procesar el audio.');
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error));
     } finally {
       setIsLoading(false);
     }

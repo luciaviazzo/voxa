@@ -6,6 +6,8 @@ const config: Config = {
     moduleNameMapper: {
         "^@/(.*)$": "<rootDir>/$1",
     },
+    collectCoverageFrom: ["app/**/*.ts", "lib/**/*.ts", "services/**/*.ts", "!**/*.test.ts"],
+    coverageThreshold: { global: { statements: 100, branches: 100, functions: 100, lines: 100 } },
     transform: {
         "^.+\\.tsx?$": ["ts-jest", { tsconfig: { module: "commonjs" } }],
     },

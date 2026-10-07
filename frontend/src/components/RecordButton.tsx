@@ -56,6 +56,8 @@ export default function RecordButton({ onRecordComplete, isLoading = false }: Re
         onPressIn={startRecording}
         onPressOut={stopRecording}
         disabled={isLoading}
+        accessibilityRole="button"
+        accessibilityLabel="Grabar movimiento"
         activeOpacity={0.7}
         className={`w-32 h-32 rounded-full items-center justify-center shadow-lg ${
           isRecording ? 'bg-red-500 scale-110' : 'bg-blue-600'
